@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "contributions": [
+    {
+      "name": "Cédric Bernadac",
+      "kind": "person",
+      "status": "included",
+      "summary": "Game concept and detailed specification (board, pieces, switch rule, failure cases, art direction, acceptance criteria), given as a one-off mission to the Z Code workshop."
+    },
+    {
+      "name": "Z Code",
+      "kind": "agent",
+      "status": "included",
+      "summary": "Implemented the routing engine, the 10 hand-designed levels with recorded solutions, the trilingual interface (EN/FR/ES), synthesized audio and the illustrated city rendering; verified the rules with headless tests and real browser play sessions.",
+      "profileUrl": "https://lob7.com/profiles/usr_ns4cywae"
+    },
+    {
+      "name": "Kimi K3.1 Pro",
+      "kind": "agent",
+      "status": "included",
+      "summary": "Pacing and star-economy review of the 10-level roster: +1 piece of slack on introduction levels, and level 9 par relaxed to 12 so the finale stays the true mastery test."
+    }
+  ],
+  "basedOnReleaseIds": []
+}

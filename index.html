@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Pneumatic Post</title>
+<style>
+:root{
+  --bg:#eaf4f8; --panel:#ffffff; --ink:#2d3a43; --ink-soft:#5b6d78;
+  --cream:#fdf6e9; --block:#e7dcc3; --coral:#ff7a6b; --sky:#5db8e8; --sun:#ffd166;
+  --go:#3fae6a; --go-dark:#2f8a53; --danger:#e5484d; --glass:#bfe3f2;
+  --radius:14px; --shadow:0 4px 14px rgba(45,58,67,.12);
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:linear-gradient(180deg,#dceef6 0%,var(--bg) 40%,#f2f8ec 100%);
+  color:var(--ink); font-family:"Avenir Next","Segoe UI",system-ui,-apple-system,sans-serif;
+  min-height:100vh; display:flex; flex-direction:column; align-items:center;
+  user-select:none; -webkit-user-select:none;
+}
+header{width:100%; max-width:640px; display:flex; align-items:flex-end; justify-content:space-between; padding:10px 16px 4px}
+h1{font-size:clamp(20px,5vw,28px); margin:0; letter-spacing:.5px}
+#tagline{margin:2px 0 0; font-size:13px; color:var(--ink-soft)}
+.hbtns{display:flex; gap:8px; align-items:center}
+.hbtns button,.hbtns select{
+  background:var(--panel); border:1px solid #cfdde4; color:var(--ink); border-radius:10px;
+  font-size:14px; padding:6px 9px; cursor:pointer; box-shadow:var(--shadow);
+}
+.hbtns button:active{transform:translateY(1px)}
+#lvstrip{display:flex; gap:6px; padding:6px 10px; overflow-x:auto; width:100%; max-width:640px; scrollbar-width:thin}
+.lvchip{
+  min-width:40px; padding:4px 6px 3px; border-radius:10px; background:var(--panel); border:1px solid #cfdde4;
+  text-align:center; cursor:pointer; box-shadow:var(--shadow); line-height:1.1;
+}
+.lvchip .n{font-size:14px; font-weight:700}
+.lvchip .st{font-size:9px; color:#c9a53f; letter-spacing:-1px; white-space:nowrap}
+.lvchip.active{background:#fff4d6; border-color:#e3b94f}
+main{width:100%; max-width:640px; padding:0 10px}
+#lvhead{display:flex; justify-content:space-between; align-items:baseline; padding:2px 6px 6px; gap:8px}
+#lvname{font-weight:700; font-size:16px}
+#parinfo{font-size:12px; color:var(--ink-soft); white-space:nowrap}
+#boardwrap{position:relative; width:100%; max-width:560px; margin:0 auto; touch-action:none}
+#board{width:100%; display:block; border-radius:18px; box-shadow:var(--shadow)}
+#hint{
+  background:rgba(45,58,67,.86); color:#fff; font-size:12.5px; padding:6px 14px; border-radius:999px;
+  max-width:92%; margin:8px auto 0; text-align:center; pointer-events:none; width:fit-content;
+  transition:opacity .3s;
+}
+#hud{
+  position:absolute; top:10px; right:12px; background:rgba(255,255,255,.92); border:1px solid #cfdde4;
+  border-radius:999px; padding:4px 12px; font-size:13px; font-weight:700; box-shadow:var(--shadow);
+}
+.hidden{display:none !important}
+#traysec{width:100%; max-width:640px; padding:10px 12px 6px}
+#traymeta{display:flex; justify-content:space-between; font-size:12px; color:var(--ink-soft); padding:0 4px 6px}
+#tray{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; min-height:84px}
+.pcard{
+  background:var(--panel); border:1px solid #cfdde4; border-radius:var(--radius); box-shadow:var(--shadow);
+  width:76px; padding:6px 4px 4px; text-align:center; cursor:grab; touch-action:none; position:relative;
+}
+.pcard.empty{opacity:.35; cursor:default}
+.pcard canvas{width:52px; height:52px; display:block; margin:0 auto}
+.pcard .cnt{position:absolute; top:4px; right:6px; background:var(--ink); color:#fff; font-size:11px; font-weight:700; border-radius:8px; padding:1px 6px}
+.pcard .lbl{font-size:10px; color:var(--ink-soft); line-height:1.15; margin-top:2px; display:block}
+#actions{display:flex; gap:10px; justify-content:center; padding:10px 0 2px; flex-wrap:wrap}
+#actions button{
+  font-size:16px; font-weight:700; border:none; border-radius:12px; padding:12px 22px; cursor:pointer; box-shadow:var(--shadow);
+}
+#actions button:active{transform:translateY(1px)}
+#btnLaunch{background:var(--go); color:#fff}
+#btnLaunch:disabled{background:#a9cbb6; cursor:default}
+#btnStop{background:var(--danger); color:#fff}
+#btnClear{background:#fff; color:var(--ink-soft); border:1px solid #cfdde4 !important}
+#overlay,#rules{
+  position:fixed; inset:0; background:rgba(37,50,58,.45); display:flex; align-items:center; justify-content:center; z-index:40; padding:18px;
+}
+.card{
+  background:var(--panel); border-radius:20px; box-shadow:0 12px 40px rgba(20,30,36,.3); max-width:420px; width:100%;
+  padding:22px; text-align:center;
+}
+.card h2{margin:0 0 6px; font-size:22px}
+.card p{margin:6px 0; color:var(--ink-soft); font-size:14px}
+.card .stars{font-size:34px; letter-spacing:4px; color:#c9a53f; margin:6px 0}
+.card .btnrow{display:flex; gap:8px; justify-content:center; margin-top:14px; flex-wrap:wrap}
+.card button{border:none; border-radius:12px; padding:10px 16px; font-size:14px; font-weight:700; cursor:pointer}
+.card .primary{background:var(--go); color:#fff}
+.card .ghostb{background:#eef4f6; color:var(--ink)}
+#rules .card{text-align:left; max-height:82vh; overflow:auto}
+#rules ul{padding-left:18px; font-size:14px; color:var(--ink-soft); margin:8px 0}
+#rules b{color:var(--ink)}
+#rules .close{display:block; margin:10px auto 0}
+#ghost{position:fixed; z-index:50; pointer-events:none; opacity:.85; width:64px; height:64px}
+#ghost canvas{width:64px; height:64px}
+footer{font-size:11px; color:#8fa1ab; padding:8px 0 14px; text-align:center}
+#dbg{position:fixed; left:6px; top:6px; background:rgba(45,58,67,.8); color:#9f8; font:11px monospace; padding:4px 8px; border-radius:8px; z-index:60}
+@media (max-width:430px){
+  .pcard{width:64px} .pcard canvas{width:44px;height:44px}
+  #actions button{padding:12px 16px; font-size:15px}
+  header{padding:10px 10px 4px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><h1 id="title">Pneumatic Post</h1><p id="tagline"></p></div>
+  <div class="hbtns">
+    <select id="lang" aria-label="Language"><option value="en">English</option><option value="fr">Français</option><option value="es">Español</option></select>
+    <button id="btnRules" title="How to play">?</button>
+    <button id="btnSound" title="Sound">🔊</button>
+  </div>
+</header>
+<nav id="lvstrip"></nav>
+<main>
+  <div id="lvhead"><span id="lvname"></span><span id="parinfo"></span></div>
+  <div id="boardwrap">
+    <canvas id="board"></canvas>
+    <div id="hud" class="hidden"></div>
+    <div id="hint"></div>
+  </div>
+</main>
+<section id="traysec">
+  <div id="traymeta"><span id="traytitle"></span><span id="usedinfo"></span></div>
+  <div id="tray"></div>
+  <div id="actions">
+    <button id="btnLaunch"></button>
+    <button id="btnStop" class="hidden"></button>
+    <button id="btnClear"></button>
+  </div>
+</section>
+<div id="overlay" class="hidden"><div class="card">
+  <h2 id="ovTitle"></h2>
+  <div class="stars" id="ovStars"></div>
+  <p id="ovMsg"></p>
+  <div class="btnrow">
+    <button id="ovNext" class="primary"></button>
+    <button id="ovRetry" class="ghostb"></button>
+    <button id="ovClose" class="ghostb"></button>
+  </div>
+</div></div>
+<div id="rules" class="hidden"><div class="card">
+  <h2 id="ruTitle"></h2>
+  <div id="ruBody"></div>
+  <button id="ruClose" class="primary close"></button>
+</div></div>
+<div id="ghost" class="hidden"><canvas width="96" height="96"></canvas></div>
+<div id="dbg" class="hidden"></div>
+<footer id="credit"></footer>
+<script>
+"use strict";
+/* ============================================================
+   PNEUMATIC POST — Poste pneumatique — Correo neumático
+   Concept: Cédric Bernadac · Game made by Z-Code (GLM)
+   Single self-contained file. No network, no dependencies.
+   ============================================================ */
+
+/* ---------- i18n ---------- */
+const I18N = {
+  en:{
+    tagline:"Build the city's mail tubes",
+    level:"Level",
+    pieces:"Pieces",
+    launch:"LAUNCH", stop:"STOP", clear:"Clear",
+    straight:"Straight", bend:"Elbow", cross:"Crossing", sw:"Switch",
+    switchFor:"Switch · {cat}",
+    parInfo:"3★ build: {n} pieces or fewer",
+    usedInfo:"placed {u} · tray {r}",
+    delivered:"Delivered {d}/{t}",
+    winTitle:"All mail delivered!",
+    winMsg:"Network complete — {u} pieces · 3★ at {p} or fewer",
+    failLost:"A capsule was lost — the network has a gap.",
+    failWrong:"Wrong address — a capsule reached the wrong house.",
+    failLoop:"Endless loop — a capsule circles forever.",
+    next:"Next level", replay:"Replay", fix:"Fix the network", close:"Close",
+    rulesTitle:"How to play",
+    credit:"Concept: Cédric Bernadac · Game made by Z-Code",
+    rules:"<ul>\
+<li><b>Drag pipes</b> from the tray onto the squares. <b>Tap a placed piece</b> to rotate it. Drag it back to the tray to remove it.</li>\
+<li>Press <b>LAUNCH</b>: capsules leave the brass ports and follow the tubes.</li>\
+<li>Each <b>capsule</b> carries a colour and a symbol. Guide every capsule to the <b>house with the same colour and symbol</b>.</li>\
+<li>A <b>switch</b> sends its own marked category to the side branch; every other capsule continues straight through.</li>\
+<li>A <b>crossing</b> lets two lines pass through the same square without mixing.</li>\
+<li>The run fails if a capsule is <b>lost</b> (gap in the tubes), reaches a <b>wrong house</b>, or gets trapped in an <b>endless loop</b>. The network stays in place so you can fix it.</li>\
+<li>Solve a level for ★★. Build it with <b>as few pieces as the 3★ target shown above the board</b> for ★★★.</li></ul>",
+    cat0:"red hearts", cat1:"blue stars", cat2:"yellow suns"
+  },
+  fr:{
+    tagline:"Construisez les tubes du courrier de la ville",
+    level:"Niveau",
+    pieces:"Pièces",
+    launch:"LANCER", stop:"ARRÊTER", clear:"Tout retirer",
+    straight:"Droit", bend:"Coude", cross:"Croisement", sw:"Aiguillage",
+    switchFor:"Aiguillage · {cat}",
+    parInfo:"Construction 3★ : {n} pièces ou moins",
+    usedInfo:"posées {u} · en réserve {r}",
+    delivered:"Livrées {d}/{t}",
+    winTitle:"Courrier 100 % livré !",
+    winMsg:"Réseau complet — {u} pièces · 3★ à {p} ou moins",
+    failLost:"Capsule perdue — le réseau a un trou.",
+    failWrong:"Mauvaise adresse — une capsule est arrivée à la mauvaise maison.",
+    failLoop:"Boucle sans fin — une capsule tourne en rond.",
+    next:"Niveau suivant", replay:"Rejouer", fix:"Corriger le réseau", close:"Fermer",
+    rulesTitle:"Comment jouer",
+    credit:"Concept : Cédric Bernadac · Jeu réalisé par Z-Code",
+    rules:"<ul>\
+<li><b>Glisse les tuyaux</b> du bac sur les cases. <b>Touche une pièce posée</b> pour la tourner. Ramène-la au bac pour l'enlever.</li>\
+<li>Appuie sur <b>LANCER</b> : les capsules sortent des ports en laiton et suivent les tubes.</li>\
+<li>Chaque <b>capsule</b> porte une couleur et un symbole. Conduis chaque capsule vers la <b>maison de la même couleur et du même symbole</b>.</li>\
+<li>Un <b>aiguillage</b> dévoie sa catégorie marquée vers la branche latérale ; toutes les autres capsules continuent tout droit.</li>\
+<li>Un <b>croisement</b> laisse passer deux lignes dans la même case sans les mélanger.</li>\
+<li>L'essai échoue si une capsule est <b>perdue</b> (trou dans les tubes), arrive à une <b>mauvaise adresse</b> ou tourne en <b>boucle sans fin</b>. Le réseau reste en place pour être corrigé.</li>\
+<li>Résous un niveau pour ★★. Construis-le avec <b>aussi peu de pièces que la cible 3★ affichée au-dessus du plateau</b> pour ★★★.</li></ul>",
+    cat0:"cœurs rouges", cat1:"étoiles bleues", cat2:"soleils jaunes"
+  },
+  es:{
+    tagline:"Construye los tubos del correo de la ciudad",
+    level:"Nivel",
+    pieces:"Piezas",
+    launch:"LANZAR", stop:"PARAR", clear:"Quitar todo",
+    straight:"Recto", bend:"Codo", cross:"Cruce", sw:"Desvío",
+    switchFor:"Desvío · {cat}",
+    parInfo:"Construcción 3★ : {n} piezas o menos",
+    usedInfo:"puestas {u} · en reserva {r}",
+    delivered:"Entregadas {d}/{t}",
+    winTitle:"¡Todo el correo entregado!",
+    winMsg:"Red completa: {u} piezas · 3★ con {p} o menos",
+    failLost:"Cápsula perdida: la red tiene un hueco.",
+    failWrong:"Dirección equivocada: una cápsula llegó a la casa incorrecta.",
+    failLoop:"Bucle sin fin: una cápsula da vueltas para siempre.",
+    next:"Nivel siguiente", replay:"Repetir", fix:"Arreglar la red", close:"Cerrar",
+    rulesTitle:"Cómo jugar",
+    credit:"Concepto: Cédric Bernadac · Juego hecho por Z-Code",
+    rules:"<ul>\
+<li><b>Arrastra los tubos</b> del bandeja a las casillas. <b>Toca una pieza puesta</b> para girarla. Devuélvela al bandeja para quitarla.</li>\
+<li>Pulsa <b>LANZAR</b>: las cápsulas salen de los puertos de latón y siguen los tubos.</li>\
+<li>Cada <b>cápsula</b> lleva un color y un símbolo. Guía cada cápsula hacia la <b>casa del mismo color y símbolo</b>.</li>\
+<li>Un <b>desvío</b> manda su categoría marcada hacia la rama lateral; las demás cápsulas siguen recto.</li>\
+<li>Un <b>cruce</b> deja pasar dos líneas por la misma casilla sin mezclarlas.</li>\
+<li>El intento falla si una cápsula se <b>pierde</b> (hueco en los tubos), llega a una <b>casa equivocada</b> o queda en un <b>bucle sin fin</b>. La red queda en su sitio para corregirla.</li>\
+<li>Resuelve un nivel para ★★. Constrúyelo con <b>tantas pocas piezas como el objetivo 3★ mostrado sobre el tablero</b> para ★★★.</li></ul>",
+    cat0:"corazones rojos", cat1:"estrellas azules", cat2:"soles amarillos"
+  }
+};
+
+/* ---------- categories ---------- */
+const CATS = [
+  { color:"#ff6b5e", dark:"#c94437", sym:0 },  // 0 coral · heart
+  { color:"#4aa3df", dark:"#2f74a8", sym:1 },  // 1 sky blue · star
+  { color:"#ffc247", dark:"#c58f1a", sym:2 }   // 2 sun yellow · sun
+];
+
+/* ---------- geometry ---------- */
+const N=6;                       // board is 6×6
+const DIRS=[[-1,0],[0,1],[1,0],[0,-1]];   // 0 N, 1 E, 2 S, 3 W
+const OPP=e=>(e+2)%4;
+const inB=(r,c)=>r>=0&&r<N&&c>=0&&c<N;
+
+/* ---------- pure routing engine (no DOM — also used by Node tests) ---------- */
+function routePiece(p, entry, cat){
+  const o=((p.o%4)+4)%4;
+  if(p.t==="I"){ const a=(o%2)?0:3, b=OPP(a); return entry===a?b:(entry===b?a:null); }
+  if(p.t==="L"){ const pr=[[0,1],[1,2],[2,3],[3,0]][o];
+    if(entry===pr[0])return pr[1]; if(entry===pr[1])return pr[0]; return null; }
+  if(p.t==="X"){ return OPP(entry); }
+  if(p.t==="S"){ const F=[1,2,1,2][o], B=[0,1,2,3][o];
+    if(entry===OPP(F)) return (cat===p.cat)?B:F;   // main flow: filter
+    if(entry===B) return F;                        // branch merges forward
+    if(entry===F) return OPP(F);                   // against the flow: pass through
+    return null; }
+  return null;
+}
+function cellKey(r,c){ return r+","+c; }
+function houseAt(level,r,c){ for(const h of level.houses) if(h.r===r&&h.c===c) return h; return null; }
+function obstacleAt(level,r,c){ return level.obstacles.some(o=>o[0]===r&&o[1]===c); }
+
+/* Walk one capsule through the grid. Returns path + terminal result.
+   Loop detection: state (cell, entry) seen twice → the capsule is trapped;
+   the cycle is walked one extra lap for the visual, then flagged. */
+function planCapsule(level, grid, entIdx, k){
+  const ent=level.entrances[entIdx], cat=level.spawn[entIdx][k];
+  let r=ent.r, c=ent.c, entry=OPP(ent.dir);
+  const path=[], seen=new Map(); let result=null;
+  for(let guard=0; guard<400; guard++){
+    const key=r+","+c+","+entry;
+    if(seen.has(key)){                       // loop: replay the cycle once more
+      const start=seen.get(key);
+      const cycle=path.slice(start);
+      for(let i=0;i<cycle.length;i++) path.push(cycle[i]);
+      result={type:"loop", r, c}; break;
+    }
+    seen.set(key, path.length);
+    const house=houseAt(level,r,c);
+    if(house){ path.push({r,c,entry,exit:-1});
+      result=(house.cat===cat)?{type:"delivered",r,c}:{type:"wrong",r,c}; break; }
+    const p=grid.get(cellKey(r,c));
+    const exit=p?routePiece(p,entry,cat):null;
+    if(exit===null){ path.push({r,c,entry,exit:-1}); result={type:"lost",r,c}; break; }
+    path.push({r,c,entry,exit});
+    const nr=r+DIRS[exit][0], nc=c+DIRS[exit][1];
+    if(!inB(nr,nc)){ result={type:"lost",r:nr,c:nc}; break; }   // fell off the map
+    r=nr; c=nc; entry=OPP(exit);
+  }
+  if(!result) result={type:"lost",r,c};
+  return {entIdx,k,cat,path,result};
+}
+
+function planRun(level, grid){
+  const caps=[];
+  level.entrances.forEach((ent,i)=>{
+    (level.spawn[i]||[]).forEach((cat,k)=>caps.push(planCapsule(level,grid,i,k)));
+  });
+  return caps;
+}
+
+/* Full headless simulation (used by tests and by the game itself). */
+function simulate(level, pieces){
+  const grid=new Map();
+  for(const p of pieces) grid.set(cellKey(p.r,p.c), p);
+  const caps=planRun(level,grid);
+  const delivered=caps.filter(x=>x.result.type==="delivered").length;
+  const fails=caps.filter(x=>x.result.type!=="delivered").map(x=>x.result);
+  return { win: caps.length>0 && fails.length===0, delivered, total:caps.length,
+           fails, used:pieces.length, caps };
+}
+
+/* ---------- level data (hand-designed; every level ships a tested solution) ----------
+   piece: {r,c,t:"I"|"L"|"X"|"S", o, cat?}   o: I 0=H 1=V · L [0..3] · S 0:E→N 1:S→E 2:E→S 3:S→W */
+const LEVELS=[
+{ name:{en:"First Mail",fr:"Premier courrier",es:"Primer correo"},
+  hint:{en:"Drag straight pipes onto the row, then press LAUNCH.",
+        fr:"Glisse les tuyaux droits sur la ligne, puis appuie sur LANCER.",
+        es:"Arrastra tubos rectos hasta la fila y pulsa LANZAR."},
+  entrances:[{r:2,c:0,dir:1}], houses:[{r:2,c:5,cat:0}], obstacles:[],
+  inv:[{t:"I",n:5}], spawn:[[0,0,0]], par:5,
+  solution:[{r:2,c:0,t:"I",o:0},{r:2,c:1,t:"I",o:0},{r:2,c:2,t:"I",o:0},{r:2,c:3,t:"I",o:0},{r:2,c:4,t:"I",o:0}] },
+
+{ name:{en:"Around the Park",fr:"Le détour du parc",es:"Rodeando el parque"},
+  hint:{en:"Elbows turn the flow — tap a piece to rotate it.",
+        fr:"Les coudes tournent le flux — touche une pièce pour la tourner.",
+        es:"Los codos giran el flujo: toca una pieza para girarla."},
+  entrances:[{r:0,c:1,dir:2}], houses:[{r:5,c:4,cat:0}], obstacles:[[2,1],[2,2],[2,3]],
+  inv:[{t:"I",n:6},{t:"L",n:3}], spawn:[[0,0,0]], par:8,
+  solution:[{r:0,c:1,t:"I",o:1},{r:1,c:1,t:"L",o:0},{r:1,c:2,t:"I",o:0},{r:1,c:3,t:"I",o:0},
+            {r:1,c:4,t:"L",o:2},{r:2,c:4,t:"I",o:1},{r:3,c:4,t:"I",o:1},{r:4,c:4,t:"I",o:1}] },
+
+{ name:{en:"Crossroads",fr:"Le carrefour",es:"El cruce"},
+  hint:{en:"A crossing lets two lines share one square.",
+        fr:"Un croisement laisse deux lignes partager une même case.",
+        es:"Un cruce deja compartir una casilla a dos líneas."},
+  entrances:[{r:1,c:0,dir:1},{r:0,c:3,dir:2}],
+  houses:[{r:1,c:5,cat:0},{r:5,c:3,cat:1}], obstacles:[[4,1],[3,4]],
+  inv:[{t:"I",n:10},{t:"X",n:1}], spawn:[[0,0],[1,1]], par:9,
+  solution:[{r:1,c:0,t:"I",o:0},{r:1,c:1,t:"I",o:0},{r:1,c:2,t:"I",o:0},{r:1,c:3,t:"X",o:0},
+            {r:1,c:4,t:"I",o:0},{r:0,c:3,t:"I",o:1},{r:2,c:3,t:"I",o:1},{r:3,c:3,t:"I",o:1},{r:4,c:3,t:"I",o:1}] },
+
+{ name:{en:"The Sorter",fr:"Le tri",es:"La clasificadora"},
+  hint:{en:"The switch sends blue stars aside; the rest goes straight on.",
+        fr:"L'aiguillage dévie les étoiles bleues ; le reste continue tout droit.",
+        es:"El desvío aparta las estrellas azules; el resto sigue recto."},
+  entrances:[{r:2,c:0,dir:1}], houses:[{r:2,c:5,cat:0},{r:5,c:3,cat:1}], obstacles:[[0,2],[4,1]],
+  inv:[{t:"I",n:7},{t:"S",cat:1,n:1}], spawn:[[0,1,0,1,0]], par:8,
+  solution:[{r:2,c:0,t:"I",o:0},{r:2,c:1,t:"I",o:0},{r:2,c:2,t:"I",o:0},
+            {r:2,c:3,t:"S",cat:1,o:2},{r:2,c:4,t:"I",o:0},{r:3,c:3,t:"I",o:1},{r:4,c:3,t:"I",o:1}] },
+
+{ name:{en:"Branch Line",fr:"L'antenne",es:"El ramal"},
+  hint:{en:"The side branch may need a bend of its own.",
+        fr:"La branche latérale peut avoir besoin de son propre coude.",
+        es:"La rama lateral puede necesitar su propio codo."},
+  entrances:[{r:0,c:2,dir:2}], houses:[{r:5,c:2,cat:0},{r:4,c:4,cat:1}], obstacles:[[2,1],[4,3]],
+  inv:[{t:"I",n:6},{t:"L",n:2},{t:"S",cat:1,n:1}], spawn:[[0,1,0,1,1]], par:8,
+  solution:[{r:0,c:2,t:"I",o:1},{r:1,c:2,t:"I",o:1},{r:2,c:2,t:"S",cat:1,o:1},
+            {r:3,c:2,t:"I",o:1},{r:4,c:2,t:"I",o:1},
+            {r:2,c:3,t:"I",o:0},{r:2,c:4,t:"L",o:2},{r:3,c:4,t:"I",o:1}] },
+
+{ name:{en:"Three Mailboxes",fr:"Trois boîtes",es:"Tres buzones"},
+  hint:{en:"Two switches, three categories — order your trunk line.",
+        fr:"Deux aiguillages, trois catégories — organise ta ligne principale.",
+        es:"Dos desvíos, tres categorías: ordena tu línea principal."},
+  entrances:[{r:2,c:0,dir:1}],
+  houses:[{r:4,c:2,cat:1},{r:1,c:4,cat:2},{r:2,c:5,cat:0}], obstacles:[[5,4],[0,1]],
+  inv:[{t:"I",n:5},{t:"L",n:2},{t:"S",cat:1,n:1},{t:"S",cat:2,n:1}],
+  spawn:[[1,2,0,1,2,0]], par:7,
+  solution:[{r:2,c:0,t:"I",o:0},{r:2,c:1,t:"I",o:0},{r:2,c:2,t:"S",cat:1,o:2},
+            {r:3,c:2,t:"I",o:1},{r:2,c:3,t:"S",cat:2,o:0},{r:1,c:3,t:"L",o:1},{r:2,c:4,t:"I",o:0}] },
+
+{ name:{en:"Country Loop",fr:"La boucle des champs",es:"La vuelta al campo"},
+  hint:{en:"Count your pieces — the shortest line earns the third star.",
+        fr:"Compte tes pièces — la ligne la plus courte vaut la troisième étoile.",
+        es:"Cuenta tus piezas: la línea más corta vale la tercera estrella."},
+  entrances:[{r:0,c:5,dir:3}], houses:[{r:5,c:0,cat:0}], obstacles:[[1,2],[2,4],[3,1]],
+  inv:[{t:"I",n:9},{t:"L",n:4}], spawn:[[0,0,0]], par:10,
+  solution:[{r:0,c:5,t:"I",o:0},{r:0,c:4,t:"I",o:0},{r:0,c:3,t:"I",o:0},{r:0,c:2,t:"I",o:0},
+            {r:0,c:1,t:"I",o:0},{r:0,c:0,t:"L",o:1},{r:1,c:0,t:"I",o:1},{r:2,c:0,t:"I",o:1},
+            {r:3,c:0,t:"I",o:1},{r:4,c:0,t:"I",o:1}] },
+
+{ name:{en:"Morning Rush",fr:"Heure de pointe",es:"Hora punta"},
+  hint:{en:"Two entrances share the same street.",
+        fr:"Deux entrées partagent la même rue.",
+        es:"Dos entradas comparten la misma calle."},
+  entrances:[{r:1,c:0,dir:1},{r:0,c:4,dir:2}],
+  houses:[{r:1,c:5,cat:0},{r:4,c:2,cat:1},{r:5,c:4,cat:2}], obstacles:[[3,0],[4,5]],
+  inv:[{t:"I",n:10},{t:"X",n:1},{t:"S",cat:1,n:1}], spawn:[[0,1,0,1],[2,2]], par:12,
+  solution:[{r:1,c:0,t:"I",o:0},{r:1,c:1,t:"I",o:0},{r:1,c:2,t:"S",cat:1,o:2},
+            {r:2,c:2,t:"I",o:1},{r:3,c:2,t:"I",o:1},{r:1,c:3,t:"I",o:0},{r:1,c:4,t:"X",o:0},
+            {r:0,c:4,t:"I",o:1},{r:2,c:4,t:"I",o:1},{r:3,c:4,t:"I",o:1},{r:4,c:4,t:"I",o:1}] },
+
+{ name:{en:"The Knot",fr:"Le nœud",es:"El nudo"},
+  hint:{en:"Read every capsule's colour before you connect.",
+        fr:"Lis la couleur de chaque capsule avant de raccorder.",
+        es:"Lee el color de cada cápsula antes de conectar."},
+  entrances:[{r:2,c:0,dir:1},{r:0,c:3,dir:2}],
+  houses:[{r:0,c:2,cat:0},{r:2,c:5,cat:1},{r:4,c:5,cat:2},{r:5,c:3,cat:0}],
+  obstacles:[[3,1],[0,4]],
+  inv:[{t:"I",n:9},{t:"X",n:1},{t:"S",cat:0,n:1},{t:"S",cat:2,n:1}],
+  spawn:[[1,0,1],[2,0,2]], par:12,
+  solution:[{r:2,c:0,t:"I",o:0},{r:2,c:1,t:"I",o:0},{r:2,c:2,t:"S",cat:0,o:0},
+            {r:1,c:2,t:"I",o:1},{r:2,c:3,t:"X",o:0},{r:2,c:4,t:"I",o:0},
+            {r:0,c:3,t:"I",o:1},{r:1,c:3,t:"I",o:1},{r:3,c:3,t:"I",o:1},
+            {r:4,c:3,t:"S",cat:2,o:1},{r:4,c:4,t:"I",o:0}] },
+
+{ name:{en:"Grand Sorting",fr:"Le grand tri",es:"El gran reparto"},
+  hint:{en:"Everything you have learned — 12 pieces or fewer for the last star.",
+        fr:"Tout ce que tu as appris — 12 pièces ou moins pour la dernière étoile.",
+        es:"Todo lo aprendido: 12 piezas o menos para la última estrella."},
+  entrances:[{r:0,c:1,dir:2},{r:0,c:4,dir:2}],
+  houses:[{r:5,c:1,cat:1},{r:2,c:5,cat:0},{r:3,c:5,cat:2},{r:5,c:4,cat:0}],
+  obstacles:[[0,3],[4,3]],
+  inv:[{t:"I",n:10},{t:"X",n:2},{t:"S",cat:0,n:1},{t:"S",cat:2,n:1}],
+  spawn:[[1,0,1,0],[2,0,2]], par:12,
+  solution:[{r:0,c:1,t:"I",o:1},{r:1,c:1,t:"I",o:1},{r:2,c:1,t:"S",cat:0,o:1},
+            {r:3,c:1,t:"I",o:1},{r:4,c:1,t:"I",o:1},
+            {r:2,c:2,t:"I",o:0},{r:2,c:3,t:"I",o:0},{r:2,c:4,t:"X",o:0},
+            {r:0,c:4,t:"I",o:1},{r:1,c:4,t:"I",o:1},{r:3,c:4,t:"S",cat:2,o:1},{r:4,c:4,t:"I",o:1}] }
+];
+
+/* expose pure data+engine for tests (works in a bare VM, no DOM) */
+if (typeof window!=="undefined"){
+  window.__PP_DATA__   = { version:"1.0.0", levels:LEVELS, cats:CATS };
+  window.__PP_ENGINE__ = { routePiece, planCapsule, planRun, simulate, houseAt, obstacleAt };
+}
+
+/* ============================================================
+   UI + rendering (DOM guarded — everything below runs in boot())
+   ============================================================ */
+function boot(){
+const $=id=>document.getElementById(id);
+const langSel=$("lang"), board=$("board"), ctx=board.getContext("2d");
+const wrap=$("boardwrap"), tray=$("tray"), hintEl=$("hint"), hudEl=$("hud");
+const dbgEl=$("dbg");
+const PARAMS=new URLSearchParams(location.search);
+const DEBUG=PARAMS.get("debug")==="1";
+
+let lang="en", sound=true, motion=true;
+let lvIdx=0, mode="edit";                 // edit | run | ended
+let grid=new Map();                       // "r,c" -> piece
+let inv=[];                               // [{t,cat,n}]
+let starsSaved=load("pp.stars",[]);       // per level 0..3
+let plan=null, simT=0, lastFrame=0, fps=60;
+let hover=null, wiggle=new Map();         // cell -> time
+let drag=null;                            // {piece, fromCell|null, ghostCtx}
+let endInfo=null;                         // run result for the overlay
+
+/* ---- storage ---- */
+function load(k,d){ try{ const v=localStorage.getItem(k); return v==null?d:JSON.parse(v);}catch(e){return d;} }
+function save(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+function store(){ save("pp.lang",lang); save("pp.sound",sound); save("pp.stars",starsSaved); }
+
+/* ---- i18n helpers ---- */
+function T(k){ const d=I18N[lang]||I18N.en; return d[k]!=null?d[k]:(I18N.en[k]||k); }
+function fmt(s,vars){ return s.replace(/\{(\w+)\}/g,(_,k)=>vars[k]!=null?vars[k]:""); }
+function catName(c){ return T("cat"+c); }
+
+/* ---- geometry / canvas ---- */
+let CELL=76, MARG=44, W=0;
+function sizeCanvas(){
+  const availW=Math.min(wrap.clientWidth||560,560);
+  CELL=Math.max(46,Math.floor(Math.min(availW/6.9,88)));
+  MARG=Math.round(CELL*0.62);
+  W=CELL*6+MARG*2;
+  const dpr=Math.min(2.5,window.devicePixelRatio||1);
+  board.width=W*dpr; board.height=W*dpr; board.style.height=board.style.width;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+function cellXY(r,c){ return [MARG+c*CELL, MARG+r*CELL]; }
+function ptFromEvent(e){
+  const rect=board.getBoundingClientRect();
+  const x=(e.clientX-rect.left)*(W/rect.width), y=(e.clientY-rect.top)*(W/rect.height);
+  const c=Math.floor((x-MARG)/CELL), r=Math.floor((y-MARG)/CELL);
+  return {x,y,r,c,inb:inB(r,c)};
+}
+
+/* ---- audio (all synthesized) ---- */
+let AC=null;
+function ac(){
+  if(!AC){ try{ AC=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} }
+  if(AC&&AC.state==="suspended"){ try{AC.resume();}catch(e){} }
+  return AC;
+}
+function tone(f,dur,type,vol,slide){
+  if(!sound) return; const a=ac(); if(!a) return;
+  const t=a.currentTime, o=a.createOscillator(), g=a.createGain();
+  o.type=type||"sine"; o.frequency.setValueAtTime(f,t);
+  if(slide) o.frequency.exponentialRampToValueAtTime(Math.max(30,slide),t+dur);
+  g.gain.setValueAtTime(0.0001,t);
+  g.gain.exponentialRampToValueAtTime(vol||0.08,t+0.012);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.connect(g).connect(a.destination); o.start(t); o.stop(t+dur+0.05);
+}
+const SFX={
+  place (){ tone(520,0.09,"triangle",0.10); },
+  rotate(){ tone(700,0.05,"square",0.045); },
+  remove(){ tone(300,0.09,"triangle",0.07,180); },
+  launch(){ tone(240,0.5,"sine",0.10,90); },
+  deliver(n){ tone(760+n*60,0.14,"sine",0.10); setTimeout(()=>tone(1140+n*80,0.18,"sine",0.08),90); },
+  switchOn(){ tone(560,0.06,"square",0.05); },
+  lost  (){ tone(150,0.35,"sawtooth",0.08,70); },
+  wrong (){ tone(220,0.25,"sawtooth",0.09,110); },
+  loop  (){ tone(180,0.4,"square",0.06,120); },
+  win   (){ [523,659,784,1046].forEach((f,i)=>setTimeout(()=>tone(f,0.22,"sine",0.09),i*110)); }
+};
+
+/* ---- drawing helpers ---- */
+function shade(hex,f){
+  const n=parseInt(hex.slice(1),16);
+  const r=Math.round(((n>>16)&255)*f), g=Math.round(((n>>8)&255)*f), b=Math.round((n&255)*f);
+  return "rgb("+r+","+g+","+b+")";
+}
+function drawSymbol(c2,kind,x,y,r,col){
+  c2.save(); c2.translate(x,y); c2.fillStyle=col; c2.strokeStyle=col;
+  if(kind===0){ // heart
+    c2.beginPath();
+    c2.moveTo(0,r*0.95);
+    c2.bezierCurveTo(-r*1.4,-r*0.1,-r*0.62,-r*1.05,0,-r*0.32);
+    c2.bezierCurveTo(r*0.62,-r*1.05,r*1.4,-r*0.1,0,r*0.95);
+    c2.fill();
+  }else if(kind===1){ // 5-point star
+    c2.beginPath();
+    for(let i=0;i<10;i++){
+      const a=-Math.PI/2+i*Math.PI/5, rr=i%2?r*0.45:r;
+      const px=Math.cos(a)*rr, py=Math.sin(a)*rr;
+      i?c2.lineTo(px,py):c2.moveTo(px,py);
+    }
+    c2.closePath(); c2.fill();
+  }else{ // sun
+    c2.beginPath(); c2.arc(0,0,r*0.52,0,7); c2.fill();
+    c2.lineWidth=Math.max(1.5,r*0.16); c2.lineCap="round";
+    for(let i=0;i<8;i++){
+      const a=i*Math.PI/4;
+      c2.beginPath();
+      c2.moveTo(Math.cos(a)*r*0.72,Math.sin(a)*r*0.72);
+      c2.lineTo(Math.cos(a)*r*1.02,Math.sin(a)*r*1.02);
+      c2.stroke();
+    }
+  }
+  c2.restore();
+}
+function edgeMid(x,y,e){ // mid-point of cell edge, x/y = top-left
+  const s=CELL;
+  return e===0?[x+s/2,y]: e===1?[x+s,y+s/2]: e===2?[x+s/2,y+s]:[x,y+s/2];
+}
+/* glass tube through a cell (seg [a,b] edges; b=-1 = tube to the centre) */
+function tube(c2,x,y,segs){
+  const s=CELL;
+  c2.lineCap="round"; c2.lineJoin="round";
+  const pass=(w,col,dx,dy)=>{
+    c2.strokeStyle=col; c2.lineWidth=w;
+    c2.save(); c2.translate(dx,dy);
+    for(const seg of segs){
+      c2.beginPath();
+      const A=edgeMid(x,y,seg[0]);
+      const B=seg[1]<0?[x+s/2,y+s/2]:edgeMid(x,y,seg[1]);
+      if(seg[1]<0){ c2.moveTo(A[0],A[1]); c2.lineTo(B[0],B[1]); }
+      else if((seg[0]+2)%4===seg[1]%4){ c2.moveTo(A[0],A[1]); c2.lineTo(B[0],B[1]); }
+      else { c2.moveTo(A[0],A[1]); c2.quadraticCurveTo(x+s/2,y+s/2,B[0],B[1]); }
+      c2.stroke();
+    }
+    c2.restore();
+  };
+  pass(s*0.17,"rgba(125,178,214,0.50)",0,0);
+  pass(s*0.17,"rgba(101,156,196,0.22)",0,s*0.045);
+  pass(s*0.055,"rgba(255,255,255,0.75)",0,-s*0.035);
+}
+function drawPiece(c2,x,y,piece,opts){
+  const s=CELL, cx=x+s/2, cy=y+s/2;
+  const o=((piece.o%4)+4)%4;
+  const wig=opts&&opts.wiggle? Math.sin((opts.wiggle)*18)*0.12:0;
+  c2.save(); if(wig) c2.translate(cx,cy),c2.rotate(wig),c2.translate(-cx,-cy);
+  if(piece.t==="I"){ tube(c2,x,y,[[ (o%2)?0:3,(o%2)?2:1 ]]); }
+  else if(piece.t==="L"){ const pr=[[0,1],[1,2],[2,3],[3,0]][o]; tube(c2,x,y,[pr]); }
+  else if(piece.t==="X"){ tube(c2,x,y,[[0,2],[3,1]]);
+    c2.beginPath(); c2.arc(cx,cy,s*0.11,0,7);
+    c2.fillStyle="rgba(255,255,255,0.9)"; c2.fill();
+    c2.lineWidth=2; c2.strokeStyle="rgba(101,156,196,0.5)"; c2.stroke();
+  } else if(piece.t==="S"){
+    const F=[1,2,1,2][o], B=[0,1,2,3][o];
+    tube(c2,x,y,[[OPP(F),F]]);
+    tube(c2,x,y,[[B,-1]]);
+    // badge
+    const cat=CATS[piece.cat];
+    c2.beginPath(); c2.arc(cx,cy,s*0.155,0,7);
+    c2.fillStyle=cat.color; c2.fill();
+    c2.lineWidth=2; c2.strokeStyle="rgba(45,58,67,0.55)"; c2.stroke();
+    drawSymbol(c2,cat.sym,cx,cy,s*0.085,"#fff");
+    // arrow from badge toward branch
+    const bm=edgeMid(x,y,B);
+    const ux=(bm[0]-cx)/s, uy=(bm[1]-cy)/s;
+    const ax=cx+ux*s*0.30, ay=cy+uy*s*0.30;
+    c2.save(); c2.translate(ax,ay); c2.rotate(Math.atan2(uy,ux));
+    c2.beginPath(); c2.moveTo(-s*0.035,-s*0.05); c2.lineTo(s*0.045,0); c2.lineTo(-s*0.035,s*0.05);
+    c2.closePath(); c2.fillStyle=cat.color; c2.strokeStyle="rgba(45,58,67,.4)"; c2.lineWidth=1;
+    c2.fill(); c2.stroke(); c2.restore();
+  }
+  c2.restore();
+}
+function drawHouse(c2,x,y,h,deliveredT){
+  const s=CELL, cat=CATS[h.cat];
+  let sc=1;
+  if(deliveredT!=null && deliveredT<0.6){ const t=deliveredT/0.6; sc=1+Math.sin(t*Math.PI)*0.13; }
+  c2.save(); c2.translate(x+s/2,y+s/2); c2.scale(sc,sc); c2.translate(-x-s/2,-y-s/2);
+  const bx=x+s*0.16, by=y+s*0.34, bw=s*0.68, bh=s*0.5;
+  // shadow
+  c2.fillStyle="rgba(45,58,67,0.10)";
+  c2.beginPath(); c2.ellipse(x+s/2,y+s*0.88,bw*0.5,s*0.07,0,0,7); c2.fill();
+  // body
+  c2.fillStyle=cat.color; c2.strokeStyle=shade(cat.color,0.72); c2.lineWidth=2;
+  rrect(c2,bx,by,bw,bh,3); c2.fill(); c2.stroke();
+  // roof
+  c2.beginPath();
+  c2.moveTo(x+s*0.08,by+1); c2.lineTo(x+s/2,y+s*0.12); c2.lineTo(x+s*0.92,by+1);
+  c2.closePath(); c2.fillStyle=shade(cat.color,0.8); c2.fill(); c2.stroke();
+  // door
+  c2.fillStyle="rgba(45,58,67,0.75)";
+  rrect(c2,x+s*0.44,y+s*0.55,s*0.13,s*0.29,2); c2.fill();
+  // window
+  c2.fillStyle="#fff";
+  rrect(c2,x+s*0.63,y+s*0.44,s*0.16,s*0.16,2); c2.fill();
+  // category symbol plate
+  c2.beginPath(); c2.arc(x+s*0.28,y+s*0.47,s*0.105,0,7);
+  c2.fillStyle="#fff"; c2.fill(); c2.strokeStyle=shade(cat.color,0.72); c2.lineWidth=1.5; c2.stroke();
+  drawSymbol(c2,cat.sym,x+s*0.28,y+s*0.47,s*0.062,cat.color);
+  // delivered flag
+  if(deliveredT!=null){
+    c2.strokeStyle="#7c6a4f"; c2.lineWidth=2;
+    c2.beginPath(); c2.moveTo(x+s*0.86,y+s*0.14); c2.lineTo(x+s*0.86,y+s*0.36); c2.stroke();
+    c2.fillStyle="#3fae6a";
+    c2.beginPath(); c2.moveTo(x+s*0.86,y+s*0.15); c2.lineTo(x+s*0.70,y+s*0.20); c2.lineTo(x+s*0.86,y+s*0.25);
+    c2.closePath(); c2.fill();
+  }
+  c2.restore();
+}
+function rrect(c2,x,y,w,h,r){
+  c2.beginPath();
+  c2.moveTo(x+r,y); c2.arcTo(x+w,y,x+w,y+h,r); c2.arcTo(x+w,y+h,x,y+h,r);
+  c2.arcTo(x,y+h,x,y,r); c2.arcTo(x,y,x+w,y,r); c2.closePath();
+}
+function drawTree(c2,x,y){
+  const s=CELL;
+  c2.fillStyle="rgba(45,58,67,0.10)";
+  c2.beginPath(); c2.ellipse(x+s/2,y+s*0.84,s*0.3,s*0.06,0,0,7); c2.fill();
+  c2.fillStyle="#8a5a33"; c2.fillRect(x+s*0.46,y+s*0.52,s*0.08,s*0.32);
+  c2.fillStyle="#69b56e"; c2.beginPath(); c2.arc(x+s*0.38,y+s*0.44,s*0.19,0,7); c2.fill();
+  c2.fillStyle="#7cc47f"; c2.beginPath(); c2.arc(x+s*0.62,y+s*0.42,s*0.21,0,7); c2.fill();
+  c2.fillStyle="#5da75e"; c2.beginPath(); c2.arc(x+s*0.50,y+s*0.28,s*0.18,0,7); c2.fill();
+}
+function drawPort(c2,ent,pulse){
+  const [x,y]=cellXY(ent.r,ent.c); const s=CELL;
+  const m=edgeMid(x,y,OPP(ent.dir)); // point on the margin side
+  const dx=DIRS[ent.dir][0], dy=DIRS[ent.dir][1];
+  const px=m[0]-dx*(s*0.42), py=m[1]-dy*(s*0.42);
+  if(pulse!=null && pulse<0.5 && motion){
+    const t=pulse/0.5;
+    c2.beginPath(); c2.arc(px,py,s*(0.2+t*0.35),0,7);
+    c2.strokeStyle="rgba(217,164,65,"+(0.6*(1-t))+")"; c2.lineWidth=3; c2.stroke();
+  }
+  c2.beginPath(); c2.arc(px,py,s*0.19,0,7);
+  c2.fillStyle="#d9a441"; c2.fill();
+  c2.lineWidth=2.5; c2.strokeStyle="#a97a26"; c2.stroke();
+  c2.beginPath(); c2.arc(px,py,s*0.10,0,7); c2.fillStyle="#fdf6e9"; c2.fill();
+  // arrow into the board
+  c2.save(); c2.translate(px+dx*s*0.30,py+dy*s*0.30); c2.rotate(Math.atan2(dy,dx));
+  c2.beginPath(); c2.moveTo(-s*0.05,-s*0.07); c2.lineTo(s*0.06,0); c2.lineTo(-s*0.05,s*0.07);
+  c2.closePath(); c2.fillStyle="#a97a26"; c2.fill(); c2.restore();
+}
+function drawQueue(c2,ent,remaining,total){
+  const [x,y]=cellXY(ent.r,ent.c); const s=CELL;
+  const m=edgeMid(x,y,OPP(ent.dir));
+  const dx=DIRS[ent.dir][0], dy=DIRS[ent.dir][1];
+  const perp=[-dy,-dx];
+  const bx=m[0]-dx*s*0.62, by=m[1]-dy*s*0.62;
+  const seq=(plan? plan.spawnSeq[plan.entrances.indexOf(ent)] : (LEVELS[lvIdx].spawn[lvIdx2ent(ent)]||[]));
+  const upcoming=seq.slice(total-remaining, total-remaining+4);
+  upcoming.forEach((cat,i)=>{
+    const qx=bx+perp[0]*(i-1)*s*0.19, qy=by+perp[1]*(i-1)*s*0.19;
+    c2.save(); c2.translate(qx,qy);
+    if(dy!==0) c2.rotate(Math.PI/2);
+    rrect(c2,-s*0.075,-s*0.045,s*0.15,s*0.09,s*0.045);
+    c2.fillStyle=CATS[cat].color; c2.fill();
+    c2.strokeStyle="rgba(45,58,67,.35)"; c2.lineWidth=1; c2.stroke();
+    c2.restore();
+  });
+  if(remaining>4){ // little +N
+    c2.fillStyle="rgba(45,58,67,.6)"; c2.font="700 "+Math.round(s*0.14)+"px sans-serif";
+    c2.textAlign="center"; c2.textBaseline="middle";
+    c2.fillText("+"+(remaining-4), bx+perp[0]*s*0.42, by+perp[1]*s*0.42);
+  }
+}
+function lvIdx2ent(ent){ return LEVELS[lvIdx].entrances.indexOf(ent); }
+
+/* capsule position along its path at time t */
+const SPEED=1.75, GAP=2.6;            // cells per second, seconds between spawns
+function capsulePos(cap, t){
+  const spawnT=cap.entIdx*1.3+cap.k*GAP;
+  if(t<spawnT) return null;
+  let d=(t-spawnT)*SPEED;              // distance in cells
+  const segs=cap.path.length;
+  let i=Math.floor(d);
+  if(i>=segs){
+    return {done:true, seg:segs-1, s:1};
+  }
+  return {done:false, seg:i, s:d-i};
+}
+function segPoint(seg,s){
+  const [x,y]=cellXY(seg.r,seg.c);
+  const A=edgeMid(x,y,seg.entry);
+  if(seg.exit<0){ // terminal: go to centre
+    return [A[0]+(x+CELL/2-A[0])*s, A[1]+(y+CELL/2-A[1])*s];
+  }
+  const B=edgeMid(x,y,seg.exit), C=[x+CELL/2,y+CELL/2];
+  if((seg.entry+2)%4===seg.exit%4){ // straight
+    return [A[0]+(B[0]-A[0])*s, A[1]+(B[1]-A[1])*s];
+  }
+  const u=1-s;
+  return [u*u*A[0]+2*u*s*C[0]+s*s*B[0], u*u*A[1]+2*u*s*C[1]+s*s*B[1]];
+}
+function segAngle(seg,s){
+  const p1=segPoint(seg,Math.max(0,s-0.06)), p2=segPoint(seg,Math.min(1,s+0.06));
+  return Math.atan2(p2[1]-p1[1],p2[0]-p1[0]);
+}
+
+/* ---- board render ---- */
+function render(){
+  const lv=LEVELS[lvIdx];
+  const now=performance.now();
+  ctx.clearRect(0,0,W,W);
+  // board plate
+  rrect(ctx,MARG*0.35,MARG*0.35,W-MARG*0.7,W-MARG*0.7,18);
+  ctx.fillStyle="#eef3df"; ctx.fill();
+  // blocks
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+    const [x,y]=cellXY(r,c);
+    rrect(ctx,x+2,y+2,CELL-4,CELL-4,8);
+    ctx.fillStyle="#fdf6e9"; ctx.fill();
+    ctx.strokeStyle="rgba(231,220,195,0.9)"; ctx.lineWidth=1.5; ctx.stroke();
+  }
+  // hover highlight
+  if(hover && hover.inb && mode==="edit"){
+    const [x,y]=cellXY(hover.r,hover.c);
+    const ok=!houseAt(lv,hover.r,hover.c)&&!obstacleAt(lv,hover.r,hover.c)&&!grid.has(cellKey(hover.r,hover.c));
+    rrect(ctx,x+2,y+2,CELL-4,CELL-4,8);
+    ctx.fillStyle=ok?"rgba(63,174,106,0.20)":"rgba(229,72,77,0.22)"; ctx.fill();
+  }
+  // obstacles
+  for(const [r,c] of lv.obstacles) drawTree(ctx,...cellXY(r,c));
+  // houses (with delivery bounce)
+  for(const h of lv.houses){
+    let dt=null;
+    if(plan){ const ev=plan.houseTimes[cellKey(h.r,h.c)];
+      if(ev!=null && simT>=ev.t) dt=Math.min(0.6,(simT-ev.t)); }
+    drawHouse(ctx,...cellXY(h.r,h.c),h,dt);
+  }
+  // entrances
+  lv.entrances.forEach((ent,i)=>{
+    let pulse=null;
+    if(plan){ const st=i*1.3; if(simT>=st && simT-st<0.5) pulse=simT-st; }
+    drawPort(ctx,ent,pulse);
+    if(mode!=="run"||!plan){
+      drawQueue(ctx,ent,(lv.spawn[i]||[]).length,(lv.spawn[i]||[]).length);
+    }
+  });
+  // tubes
+  for(const [key,p] of grid){
+    const [r,c]=key.split(",").map(Number);
+    const w=wiggle.get(key);
+    drawPiece(ctx,...cellXY(r,c),p,{wiggle:w!=null?(now-w)/1000:null});
+  }
+  if((mode==="run"||mode==="ended")&&plan){
+    // spawn queues consumed during the run
+    plan.entrances.forEach((ent,i)=>{
+      const total=(plan.level.spawn[i]||[]).length;
+      const left=plan.caps.filter(x=>x.entIdx===i&&capsulePos(x,simT)==null).length;
+      drawQueue(ctx,ent,left,total);
+    });
+    // capsules
+    for(const cap of plan.caps){
+      const pos=capsulePos(cap,simT);
+      if(!pos) continue;
+      const seg=cap.path[pos.seg];
+      const [px,py]=segPoint(seg,pos.s);
+      const arrived=pos.done&&pos.seg===cap.path.length-1;
+      if(pos.done){
+        // terminal visuals
+        const endT=cap.entIdx*1.3+cap.k*GAP+cap.path.length/SPEED;
+        const el=simT-endT;
+        if(cap.result.type==="delivered"){ /* absorbed: nothing */ }
+        else if(el<0.5){
+          if(cap.result.type==="lost"){
+            drawPop(px,py,el,0);
+            drawMarker(cap,"✗");
+          }else if(cap.result.type==="wrong"){
+            drawPop(px,py,el,1);
+            drawMarker(cap,"✗");
+          }else if(cap.result.type==="loop"){
+            drawMarker(cap,"∞");
+          }
+        } else { drawMarker(cap, cap.result.type==="loop"?"∞":"✗"); }
+        continue;
+      }
+      drawCapsule(px,py,segAngle(seg,pos.s),cap.cat);
+    }
+  }
+  if(DEBUG){
+    dbgEl.classList.remove("hidden");
+    dbgEl.textContent="fps "+fps.toFixed(0)+" · "+mode+" · t="+simT.toFixed(1)+"s";
+  }
+}
+function drawCapsule(px,py,ang,cat){
+  const s=CELL, L=s*0.5, Wd=s*0.29;
+  ctx.save(); ctx.translate(px,py); ctx.rotate(ang);
+  rrect(ctx,-L/2,-Wd/2,L,Wd,Wd/2);
+  ctx.fillStyle=CATS[cat].color; ctx.fill();
+  ctx.lineWidth=2; ctx.strokeStyle=CATS[cat].dark; ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(-L*0.12,-Wd*0.18,L*0.22,Wd*0.16,-0.3,0,7);
+  ctx.fillStyle="rgba(255,255,255,0.45)"; ctx.fill();
+  drawSymbol(ctx,CATS[cat].sym,0,0,s*0.075,"#fff");
+  ctx.restore();
+}
+function drawPop(px,py,el,wrong){
+  if(!motion) return;
+  ctx.save();
+  const a=Math.max(0,1-el*2);
+  ctx.globalAlpha=a;
+  ctx.beginPath(); ctx.arc(px,py,CELL*(0.15+el*0.5),0,7);
+  ctx.strokeStyle=wrong?"rgba(229,72,77,.7)":"rgba(120,140,150,.5)";
+  ctx.lineWidth=3; ctx.stroke();
+  ctx.restore();
+}
+function drawMarker(cap,txt){
+  const [x,y]=cellXY(cap.result.r,cap.result.c);
+  const cx=x+CELL/2, cy=y+CELL/2;
+  ctx.beginPath(); ctx.arc(cx,cy,CELL*0.17,0,7);
+  ctx.fillStyle="rgba(229,72,77,0.95)"; ctx.fill();
+  ctx.strokeStyle="#fff"; ctx.lineWidth=2; ctx.stroke();
+  ctx.fillStyle="#fff"; ctx.font="700 "+Math.round(CELL*0.2)+"px sans-serif";
+  ctx.textAlign="center"; ctx.textBaseline="middle";
+  ctx.fillText(txt,cx,cy+1);
+}
+let blipped=new Set();
+
+/* ---- run planning / timeline ---- */
+function buildPlan(){
+  const lv=LEVELS[lvIdx];
+  const caps=planRun(lv,grid);
+  const houseTimes={}; const failEvents=[];
+  for(const cap of caps){
+    const endT=cap.entIdx*1.3+cap.k*GAP+cap.path.length/SPEED;
+    if(cap.result.type==="delivered"){
+      const k=cellKey(cap.result.r,cap.result.c);
+      if(!houseTimes[k]||endT<houseTimes[k].t) houseTimes[k]={t:endT,cat:cap.cat};
+    } else failEvents.push({t:endT,type:cap.result.type,cap});
+  }
+  const delivered=caps.filter(x=>x.result.type==="delivered").length;
+  const win=caps.length>0&&failEvents.length===0;
+  const lastDeliv=Math.max(0,...caps.map(x=>x.entIdx*1.3+x.k*GAP+x.path.length/SPEED));
+  const failAt=failEvents.length?Math.min(...failEvents.map(e=>e.t)):null;
+  const endAt=win? lastDeliv+1.1 : failAt+1.0;
+  return { level:lv, caps, houseTimes, failEvents, delivered, total:caps.length,
+           win, failAt, endAt, entrances:lv.entrances,
+           spawnSeq:lv.spawn.slice(), deliveredSoFar:0 };
+}
+function launchRun(){
+  if(mode!=="edit") return;
+  plan=buildPlan(); simT=0; blipped.clear();
+  mode="run"; endInfo=null;
+  document.body.classList.add("running");
+  $("btnLaunch").classList.add("hidden"); $("btnStop").classList.remove("hidden");
+  hudEl.classList.remove("hidden"); hintEl.style.opacity="0";
+  SFX.launch();
+  updHud();
+}
+function endRun(){
+  if(mode!=="run") return;
+  mode="ended";
+  $("btnStop").classList.add("hidden");
+  hudEl.classList.remove("hidden");
+  if(plan.win){
+    const used=grid.size, par=LEVELS[lvIdx].par;
+    const st=used<=par?3:2;
+    if((starsSaved[lvIdx]||0)<st){ starsSaved[lvIdx]=st; store(); }
+    endInfo={win:true,stars:st,used};
+    SFX.win(); renderStrip();
+  } else {
+    const f=plan.failEvents[0];
+    endInfo={win:false,type:f?f.type:"lost"};
+    (f&&f.type==="wrong"?SFX.wrong:f&&f.type==="loop"?SFX.loop:SFX.lost)();
+  }
+  setTimeout(showOverlay,350);
+}
+function stopRun(){
+  plan=null; mode="edit";
+  document.body.classList.remove("running");
+  $("btnLaunch").classList.remove("hidden"); $("btnStop").classList.add("hidden");
+  hudEl.classList.add("hidden"); hintEl.style.opacity="1";
+  refreshTrayCounts();
+}
+function updHud(){
+  if(!plan){ hudEl.classList.add("hidden"); return; }
+  let d=0;
+  for(const cap of plan.caps){
+    const endT=cap.entIdx*1.3+cap.k*GAP+cap.path.length/SPEED;
+    if(cap.result.type==="delivered"&&simT>=endT) d++;
+  }
+  hudEl.textContent=fmt(T("delivered"),{d,t:plan.total});
+}
+function showOverlay(){
+  const ov=$("overlay");
+  const title=$("ovTitle"), msg=$("ovMsg"), st=$("ovStars");
+  const nextB=$("ovNext"), retryB=$("ovRetry"), closeB=$("ovClose");
+  if(endInfo.win){
+    title.textContent=T("winTitle");
+    st.textContent="★".repeat(endInfo.stars)+"☆".repeat(3-endInfo.stars);
+    msg.textContent=fmt(T("winMsg"),{u:endInfo.used,p:LEVELS[lvIdx].par});
+    nextB.textContent=T("next"); nextB.classList.remove("hidden");
+    retryB.textContent=T("replay");
+  } else {
+    st.textContent="";
+    title.textContent=T("level")+" "+(lvIdx+1);
+    msg.textContent=T(endInfo.type==="wrong"?"failWrong":endInfo.type==="loop"?"failLoop":"failLost");
+    nextB.classList.add("hidden");
+    retryB.textContent=T("fix");
+  }
+  closeB.textContent=T("close");
+  ov.classList.remove("hidden");
+}
+function closeOverlay(){
+  $("overlay").classList.add("hidden");
+  plan=null; mode="edit";
+  document.body.classList.remove("running");
+  $("btnLaunch").classList.remove("hidden"); $("btnStop").classList.add("hidden");
+  hudEl.classList.add("hidden"); hintEl.style.opacity="1";
+  refreshTrayCounts();
+}
+
+/* ---- tray ---- */
+function invKey(e){ return e.t+(e.cat!=null?":"+e.cat:""); }
+function invCount(k){ const e=inv.find(x=>invKey(x)===k); return e?e.n:0; }
+function invTake(k){ const e=inv.find(x=>invKey(x)===k); if(!e||e.n<=0)return false; e.n--; refreshTrayCounts(); return true; }
+function invGive(k){ const e=inv.find(x=>invKey(x)===k); if(e){ e.n++; refreshTrayCounts(); } }
+function pieceLabel(e){
+  if(e.t==="I")return T("straight"); if(e.t==="L")return T("bend");
+  if(e.t==="X")return T("cross"); return fmt(T("switchFor"),{cat:catName(e.cat)});
+}
+function buildTray(){
+  tray.innerHTML="";
+  for(const e of inv){
+    const card=document.createElement("div");
+    card.className="pcard"; card.dataset.k=invKey(e);
+    const cv=document.createElement("canvas"); cv.width=104; cv.height=104;
+    card.appendChild(cv);
+    const cnt=document.createElement("span"); cnt.className="cnt"; card.appendChild(cnt);
+    const lbl=document.createElement("span"); lbl.className="lbl"; card.appendChild(lbl);
+    lbl.textContent=pieceLabel(e);
+    // icon
+    const ic=cv.getContext("2d"); const keep=CELL; CELL=104;
+    drawPiece(ic,0,0,{t:e.t,o:e.t==="I"?0:e.t==="L"?0:0,cat:e.cat},{});
+    CELL=keep;
+    card.addEventListener("pointerdown",ev=>startDragFromTray(ev,e,card));
+    tray.appendChild(card);
+  }
+  refreshTrayCounts();
+}
+function refreshTrayCounts(){
+  for(const card of tray.children){
+    const k=card.dataset.k, n=invCount(k);
+    card.querySelector(".cnt").textContent="×"+n;
+    card.classList.toggle("empty",n<=0);
+    card.querySelector(".lbl").textContent=pieceLabel(inv.find(x=>invKey(x)===k));
+  }
+  const total=inv.reduce((a,e)=>a+e.n,0);
+  $("usedinfo").textContent=fmt(T("usedInfo"),{u:grid.size,r:total});
+  $("btnLaunch").disabled=(mode!=="edit");
+}
+
+/* ---- drag & tap ---- */
+const ghost=$("ghost"), ghostCv=ghost.querySelector("canvas"), ghostCtx=ghostCv.getContext("2d");
+function showGhost(piece){
+  const g=ghostCtx; g.clearRect(0,0,96,96);
+  const keep=CELL; CELL=96;
+  g.globalAlpha=0.9; drawPiece(g,0,0,piece,{}); g.globalAlpha=1;
+  CELL=keep; ghost.classList.remove("hidden");
+}
+function moveGhost(ev){ ghost.style.left=(ev.clientX-32)+"px"; ghost.style.top=(ev.clientY-32)+"px"; }
+function startDragFromTray(ev,e,card){
+  if(mode!=="edit") return;
+  if(invCount(invKey(e))<=0) return;
+  ev.preventDefault();
+  const piece={t:e.t,o:0,cat:e.cat};
+  drag={piece,fromCell:null,key:invKey(e),moved:false,x0:ev.clientX,y0:ev.clientY,srcCard:card};
+  bindDrag(ev);
+}
+function boardPointermDown(ev){
+  if(mode!=="edit") return;
+  const pt=ptFromEvent(ev);
+  if(!pt.inb) return;
+  const key=cellKey(pt.r,pt.c), p=grid.get(key);
+  if(!p) return;
+  ev.preventDefault();
+  drag={piece:JSON.parse(JSON.stringify(p)),fromCell:key,orig:JSON.parse(JSON.stringify(p)),
+        moved:false,x0:ev.clientX,y0:ev.clientY};
+  bindDrag(ev);
+}
+function bindDrag(ev){
+  const move=e=>{
+    if(!drag) return;
+    if(!drag.moved && Math.abs(e.clientX-drag.x0)+Math.abs(e.clientY-drag.y0)>7){
+      drag.moved=true;
+      if(drag.fromCell && !drag.lifted){
+        grid.delete(drag.fromCell); drag.lifted=true;   // lift the piece (kept in hand)
+      }
+      if(!drag.fromCell || drag.lifted) showGhost(drag.piece);
+    }
+    if(drag.moved){
+      moveGhost(e);
+      const pt=ptFromEvent(e);
+      hover=(pt.inb||drag.fromCell)?pt:null;
+    }
+  };
+  const up=e=>{
+    window.removeEventListener("pointermove",move);
+    window.removeEventListener("pointerup",up);
+    window.removeEventListener("pointercancel",up);
+    const d=drag; drag=null; hover=null;
+    ghost.classList.add("hidden");
+    if(!d) return;
+    const pt=ptFromEvent(e);
+    if(!d.moved){                    // simple tap
+      if(d.fromCell){ rotateAt(d.fromCell); }
+      else if(d.key){}               // tap on empty tray card: nothing
+      return;
+    }
+    if(d.fromCell){
+      if(pt.inb && cellFree(pt.r,pt.c)){
+        grid.set(cellKey(pt.r,pt.c),d.piece); SFX.place();
+      } else if(pt.inb && cellKey(pt.r,pt.c)===d.fromCell){
+        grid.set(d.fromCell,d.orig); // dropped back on itself
+      } else {
+        invGive(invKey({t:d.piece.t,cat:d.piece.cat})); SFX.remove(); // back to tray
+      }
+    } else {
+      if(pt.inb && cellFree(pt.r,pt.c) && invTake(d.key)){
+        grid.set(cellKey(pt.r,pt.c),d.piece); SFX.place();
+      }
+    }
+    refreshTrayCounts();
+  };
+  window.addEventListener("pointermove",move,{passive:false});
+  window.addEventListener("pointerup",up);
+  window.addEventListener("pointercancel",up);
+}
+let invTakenDuringDrag=false;
+function cellFree(r,c){
+  const lv=LEVELS[lvIdx];
+  return !houseAt(lv,r,c)&&!obstacleAt(lv,r,c)&&!grid.has(cellKey(r,c));
+}
+function rotateAt(key){
+  const p=grid.get(key); if(!p) return;
+  const max=p.t==="I"?2:4;
+  if(p.t==="X"){ wiggle.set(key,performance.now()); SFX.rotate(); return; }
+  p.o=(p.o+1)%max;
+  wiggle.set(key,performance.now());
+  SFX.rotate();
+}
+
+/* ---- level strip / loading ---- */
+function renderStrip(){
+  const strip=$("lvstrip"); strip.innerHTML="";
+  LEVELS.forEach((lv,i)=>{
+    const chip=document.createElement("div");
+    chip.className="lvchip"+(i===lvIdx?" active":"");
+    chip.innerHTML='<div class="n">'+(i+1)+'</div><div class="st">'+
+      "★".repeat(starsSaved[i]||0)+"·".repeat(3-(starsSaved[i]||0))+"</div>";
+    chip.addEventListener("click",()=>loadLevel(i));
+    strip.appendChild(chip);
+  });
+}
+function loadLevel(i){
+  lvIdx=i; mode="edit"; plan=null; endInfo=null;
+  const lv=LEVELS[i];
+  grid=new Map();
+  inv=lv.inv.map(e=>({...e}));
+  $("overlay").classList.add("hidden");
+  $("btnLaunch").classList.remove("hidden"); $("btnStop").classList.add("hidden");
+  hudEl.classList.add("hidden"); hintEl.style.opacity="1";
+  $("lvname").textContent=T("level")+" "+(i+1)+" · "+lv.name[lang];
+  $("parinfo").textContent=fmt(T("parInfo"),{n:lv.par});
+  hintEl.textContent=lv.hint[lang];
+  buildTray(); renderStrip(); refreshTrayCounts();
+}
+
+/* ---- texts / language ---- */
+function applyTexts(){
+  document.documentElement.lang=lang;
+  document.title=T("level")==="Niveau"?"Poste pneumatique":T("level")==="Nivel"?"Correo neumático":"Pneumatic Post";
+  $("title").textContent=document.title;
+  $("tagline").textContent=T("tagline");
+  $("traytitle").textContent=T("pieces");
+  $("btnLaunch").textContent=T("launch");
+  $("btnStop").textContent=T("stop");
+  $("btnClear").textContent=T("clear");
+  $("ruTitle").textContent=T("rulesTitle");
+  $("ruBody").innerHTML=T("rules");
+  $("ruClose").textContent=T("close");
+  $("credit").textContent=T("credit");
+  const lv=LEVELS[lvIdx];
+  $("lvname").textContent=T("level")+" "+(lvIdx+1)+" · "+lv.name[lang];
+  $("parinfo").textContent=fmt(T("parInfo"),{n:lv.par});
+  hintEl.textContent=lv.hint[lang];
+  renderStrip(); refreshTrayCounts();
+}
+function setLang(l){
+  if(!I18N[l]) return;
+  lang=l; langSel.value=l; store(); applyTexts();
+}
+
+/* ---- main loop (rAF + watchdog against throttled tabs) ---- */
+let lastTick=performance.now();
+function frame(now){
+  const dt=Math.min(0.1,(now-lastTick)/1000); lastTick=now;
+  fps=fps*0.9+(1/Math.max(0.001,dt))*0.1;
+  if(mode==="run"&&plan){
+    simT+=dt;
+    // switch blips
+    for(const cap of plan.caps){
+      const pos=capsulePos(cap,simT);
+      if(pos&&!pos.done){
+        const seg=cap.path[pos.seg];
+        const p=seg&&grid.get(cellKey(seg.r,seg.c));
+        if(p&&p.t==="S"&&pos.s>=0.48&&pos.s<0.48+dt*SPEED+0.02){
+          const k="b"+cap.entIdx+"_"+cap.k+"_"+seg.r+"_"+seg.c;
+          if(!blipped.has(k)&&plan.entrances.length>0){ blipped.add(k); SFX.switchOn(); }
+        }
+      }
+    }
+    // delivery dings
+    for(const cap of plan.caps){
+      if(cap.result.type!=="delivered") continue;
+      const endT=cap.entIdx*1.3+cap.k*GAP+cap.path.length/SPEED;
+      const k="d"+cap.entIdx+"_"+cap.k;
+      if(simT>=endT&&!blipped.has(k)){ blipped.add(k); SFX.deliver(plan.deliveredSoFar=(plan.deliveredSoFar||0)); }
+    }
+    updHud();
+    if(simT>=plan.endAt) endRun();
+  }
+  render();
+  requestAnimationFrame(frame);
+}
+setInterval(()=>{ // watchdog: advance the clock even if rAF is throttled
+  const now=performance.now();
+  if(mode==="run"&&plan&&now-lastTick>180){ lastTick=now; simT+=0.18; updHud();
+    if(simT>=plan.endAt) endRun(); }
+},180);
+
+/* ---- wire UI ---- */
+$("btnLaunch").addEventListener("click",launchRun);
+$("btnStop").addEventListener("click",stopRun);
+$("btnClear").addEventListener("click",()=>{
+  if(mode!=="edit") return;
+  for(const [k,p] of grid){ invGive(invKey({t:p.t,cat:p.cat})); }
+  grid.clear(); refreshTrayCounts(); SFX.remove();
+});
+$("btnRules").addEventListener("click",()=>$("rules").classList.remove("hidden"));
+$("ruClose").addEventListener("click",()=>$("rules").classList.add("hidden"));
+$("rules").addEventListener("click",e=>{ if(e.target.id==="rules")$("rules").classList.add("hidden"); });
+$("btnSound").addEventListener("click",()=>{
+  sound=!sound; $("btnSound").textContent=sound?"🔊":"🔇"; store();
+});
+langSel.addEventListener("change",()=>setLang(langSel.value));
+$("ovClose").addEventListener("click",closeOverlay);
+$("ovRetry").addEventListener("click",()=>{
+  $("overlay").classList.add("hidden");
+  if(endInfo&&endInfo.win){ loadLevel(lvIdx); } else { closeOverlay(); }
+});
+$("ovNext").addEventListener("click",()=>loadLevel(Math.min(LEVELS.length-1,lvIdx+1)));
+board.addEventListener("pointerdown",boardPointermDown);
+
+/* ---- boot ---- */
+lang=load("pp.lang", (navigator.language||"en").slice(0,2));
+if(!I18N[lang]) lang="en";
+sound=load("pp.sound",true);
+if(PARAMS.get("lang")&&I18N[PARAMS.get("lang")]) lang=PARAMS.get("lang");
+$("btnSound").textContent=sound?"🔊":"🔇";
+langSel.value=lang;
+motion=!load("pp.motion",false)&&!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+sizeCanvas();
+window.addEventListener("resize",()=>{ sizeCanvas(); });
+loadLevel(0);
+applyTexts();
+store();
+requestAnimationFrame(t=>{ lastTick=t; frame(t); });
+
+/* ---- QA / debug hooks ---- */
+window.__PP__={
+  version:"1.0.0",
+  state(){ return {mode,lvIdx,placed:grid.size,lang,stars:starsSaved.slice(),
+                   result:endInfo? (endInfo.win?{win:true,stars:endInfo.stars,used:endInfo.used}:{win:false,type:endInfo.type}):null}; },
+  setLevel(i){ loadLevel(i); },
+  place(r,c,t,o,cat){ if(!cellFree(r,c))return false;
+    if(!invTake(invKey({t,cat})))return false;
+    grid.set(cellKey(r,c),{t,o:o||0,cat}); refreshTrayCounts(); return true; },
+  rotate(r,c){ rotateAt(r+","+c); },
+  clear(){ grid.clear(); inv=LEVELS[lvIdx].inv.map(e=>({...e})); refreshTrayCounts(); },
+  launch(){ launchRun(); return plan?{win:plan.win,delivered:plan.delivered,total:plan.total}:null; },
+  stop(){ stopRun(); },
+  step(ms){ if(mode==="run"&&plan){ simT+=ms/1000; updHud(); if(simT>=plan.endAt) endRun(); } render(); return window.__PP__.state(); },
+  setLang(l){ setLang(l); },
+  loadSolution(i){ const lv=LEVELS[i]; loadLevel(i);
+    grid=new Map(); inv=lv.inv.map(e=>({...e}));
+    for(const p of lv.solution){ grid.set(cellKey(p.r,p.c),{t:p.t,o:p.o,cat:p.cat}); }
+    refreshTrayCounts(); },
+  simulate(i){ return simulate(LEVELS[i],LEVELS[i].solution); },
+  engine:window.__PP_ENGINE__
+};
+} /* end boot */
+
+if (typeof document!=="undefined"&&document.getElementById&&document.getElementById("board")){
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",boot);
+  else boot();
+}
+</script>
+</body>
+</html>

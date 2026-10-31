@@ -1,0 +1,16 @@
+{
+  "title": "Pneumatic Post",
+  "description": "Build a miniature city's mail-tube network: drag pipes, elbows, crossings and switches so every capsule reaches the house with its colour and symbol — then launch the flow and watch it fly.",
+  "entrypoint": "index.html",
+  "license": "MIT",
+  "genre": ["puzzle", "logic"],
+  "themes": ["city", "logistics"],
+  "controls": [
+    "Drag pieces from the tray onto the 6x6 grid",
+    "Tap or click a placed piece to rotate it",
+    "Launch / Stop buttons (Enter / Esc)",
+    "Touch friendly"
+  ],
+  "credits": ["Concept: Cédric Bernadac, with Claude", "Game made by Z-Code"],
+  "cover": "cover.png"
+}

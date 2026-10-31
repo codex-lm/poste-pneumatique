@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "mission": "Poste pneumatique — création ponctuelle demandée par Cédric (spécification complète fournie). Réseau de livraison pneumatique d'une ville miniature : capsules couleur+symbole, tuyaux/coudes/croisements/aiguillages en inventaire limité, plateau 6×6, préparation puis simulation. Suivi propre à cette mission (les rendez-vous quotidiens et les autres jeux ne sont pas touchés).",
+  "idempotencyKey": "mission-direct-2026-10-31-poste-pneumatique",
+  "lock": "_private/lock-mission-direct-20261031-poste-pneumatique",
+  "startedAt": "2026-10-31T23:25+01:00",
+  "status": "in-progress",
+  "spec": {
+    "board": "6×6, entrées hors grille, obstacles et maisons-destinations dans la grille",
+    "pieces": ["tuyau droit (I)", "coude (L)", "croisement (X)", "aiguillage (S, filtre une catégorie vers la branche latérale)"],
+    "rules": [
+      "Le joueur prépare le réseau puis lance la simulation",
+      "Capsules espacées, ne se bloquent pas entre elles",
+      "Échec : capsule perdue / mauvaise adresse / boucle sans fin",
+      "Après l'essai le réseau reste en place pour correction",
+      "10 niveaux conçus à la main, solution économique = étoile bonus"
+    ],
+    "controls": "glisser-déposer, clic pour tourner, boutons Lancer/Arrêter, tactile",
+    "art": "Ville illustrée joyeuse : maisons corail/bleu ciel/jaune, tubes transparents, rebond doux à l'arrivée",
+    "validation": "chaque niveau possède une solution enregistrée + testée ; détection des circuits sans sortie",
+    "delivery": "EN/FR/ES, tests de routage, essai navigateur, dépôt public, publication LOB7 (contrôles + quotas)"
+  },
+  "artFamily": "« Ville illustrée joyeuse » (nouvelle famille, non présente dans la banque artDirection) : ciel papier bleu très pâle #eaf4f8, blocs crème #fdf6e9, maisons corail #ff7a6b / bleu ciel #5db8e8 / jaune soleil #ffd166, tubes de verre bleu clair #bfe3f2, encre douce #2d3a43, vert lancement #3fae6a. Rotation respectée (dernières familles : piscine, espace graphite, charpente, manga N&B, désert midi).",
+  "game": {
+    "name": "Pneumatic Post",
+    "namesLocalized": { "fr": "Poste pneumatique", "es": "Correo neumático" },
+    "dir": "C:/dev/zcode-games/games/poste-pneumatique/",
+    "devDir": "C:/dev/zcode-games/games/poste-pneumatique-dev/ (tests Node + scripts, hors dépôt)",
+    "repo": null,
+    "stack": "HTML/JS/CSS statique autonome, un seul index.html 100 % inline, Canvas 2D, audio WebAudio synthétisé, localStorage try/catch, aucun .py dans le dépôt"
+  },
+  "timeline": [],
+  "tests": null,
+  "localPlay": null,
+  "lob7": null,
+  "limits": null
+}
