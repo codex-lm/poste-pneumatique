@@ -2,36 +2,79 @@
   "version": 1,
   "mission": "Poste pneumatique — création ponctuelle demandée par Cédric (spécification complète fournie). Réseau de livraison pneumatique d'une ville miniature : capsules couleur+symbole, tuyaux/coudes/croisements/aiguillages en inventaire limité, plateau 6×6, préparation puis simulation. Suivi propre à cette mission (les rendez-vous quotidiens et les autres jeux ne sont pas touchés).",
   "idempotencyKey": "mission-direct-2026-10-31-poste-pneumatique",
-  "lock": "_private/lock-mission-direct-20261031-poste-pneumatique",
+  "lock": "_private/lock-mission-direct-20261031-poste-pneumatique (levé à la clôture)",
   "startedAt": "2026-10-31T23:25+01:00",
-  "status": "in-progress",
+  "closedAt": "2026-11-01T00:55+01:00 (Europe/Madrid)",
+  "status": "published",
   "spec": {
-    "board": "6×6, entrées hors grille, obstacles et maisons-destinations dans la grille",
+    "board": "6×6, entrées hors grille (ports laiton), obstacles et maisons-destinations dans la grille",
     "pieces": ["tuyau droit (I)", "coude (L)", "croisement (X)", "aiguillage (S, filtre une catégorie vers la branche latérale)"],
     "rules": [
       "Le joueur prépare le réseau puis lance la simulation",
-      "Capsules espacées, ne se bloquent pas entre elles",
+      "Capsules espacées (vitesse constante + intervalle fixe), ne se bloquent pas entre elles",
       "Échec : capsule perdue / mauvaise adresse / boucle sans fin",
       "Après l'essai le réseau reste en place pour correction",
-      "10 niveaux conçus à la main, solution économique = étoile bonus"
+      "10 niveaux conçus à la main, étoile bonus pour une solution économique"
     ],
-    "controls": "glisser-déposer, clic pour tourner, boutons Lancer/Arrêter, tactile",
+    "controls": "glisser-déposer, clic pour tourner, boutons Lancer/Arrêter, tactile (pointer events)",
     "art": "Ville illustrée joyeuse : maisons corail/bleu ciel/jaune, tubes transparents, rebond doux à l'arrivée",
-    "validation": "chaque niveau possède une solution enregistrée + testée ; détection des circuits sans sortie",
-    "delivery": "EN/FR/ES, tests de routage, essai navigateur, dépôt public, publication LOB7 (contrôles + quotas)"
+    "validation": "chaque niveau possède une solution enregistrée + testée ; détection des circuits sans sortie (état (case,entrée) revu → boucle, garde-fou de pas)",
+    "delivery": "EN/FR/ES, tests de routage, essai navigateur, dépôt public, publication LOB7 — fait"
   },
-  "artFamily": "« Ville illustrée joyeuse » (nouvelle famille, non présente dans la banque artDirection) : ciel papier bleu très pâle #eaf4f8, blocs crème #fdf6e9, maisons corail #ff7a6b / bleu ciel #5db8e8 / jaune soleil #ffd166, tubes de verre bleu clair #bfe3f2, encre douce #2d3a43, vert lancement #3fae6a. Rotation respectée (dernières familles : piscine, espace graphite, charpente, manga N&B, désert midi).",
+  "artFamily": "« Ville illustrée joyeuse » (nouvelle famille, absente de la banque artDirection) : ciel papier bleu très pâle #eaf4f8, blocs crème #fdf6e9, maisons corail #ff6b5e / bleu ciel #4aa3df / jaune #ffc247, tubes de verre #bfe3f2, encre douce #2d3a43, vert lancement #3fae6a. Rotation respectée (précédentes : piscine, espace graphite, charpente, manga N&B, désert midi, nuit).",
   "game": {
     "name": "Pneumatic Post",
     "namesLocalized": { "fr": "Poste pneumatique", "es": "Correo neumático" },
     "dir": "C:/dev/zcode-games/games/poste-pneumatique/",
-    "devDir": "C:/dev/zcode-games/games/poste-pneumatique-dev/ (tests Node + scripts, hors dépôt)",
-    "repo": null,
+    "devDir": "C:/dev/zcode-games/games/poste-pneumatique-dev/ (tests Node + make_cover.py, hors dépôt)",
+    "repo": "codex-lm/poste-pneumatique",
+    "repoUrl": "https://github.com/codex-lm/poste-pneumatique",
+    "playUrl": "https://codex-lm.github.io/poste-pneumatique/",
+    "commits": [
+      "a4e3e08 jeu complet (index.html autonome + docs + cover)",
+      "899b274 preuve ownership LOB7 bd_s_c89fed22 (commit figé pour la publication)"
+    ],
     "stack": "HTML/JS/CSS statique autonome, un seul index.html 100 % inline, Canvas 2D, audio WebAudio synthétisé, localStorage try/catch, aucun .py dans le dépôt"
   },
-  "timeline": [],
-  "tests": null,
-  "localPlay": null,
-  "lob7": null,
-  "limits": null
+  "levels": {
+    "count": 10,
+    "roster": "1 Premier courrier (I) · 2 Détour du parc (coudes) · 3 Carrefour (croisement) · 4 Le tri (1er aiguillage) · 5 L'antenne (branche+coudes) · 6 Trois boîtes (2 aiguillages, 3 catégories) · 7 Boucle des champs (économie pure, par = chemin minimal 10) · 8 Heure de pointe (2 entrées + croisement + aiguillage) · 9 Le nœud (2 entrées, croisement partagé, 2 aiguillages, 4 maisons) · 10 Grand tri (final : 2 entrées, 2 aiguillages, croisement, par 12 exact)",
+    "pars": [5, 8, 9, 8, 8, 7, 10, 12, 12, 12],
+    "starRule": "★★ réussite · ★★★ si pièces posées ≤ par (par = solution auteur ; +1 pièce de tolérance aux niveaux d'introduction 4 et 8, retour au par exact en 9-10 — revue Kimi)",
+    "recordedSolutions": "chaque niveau embarque sa solution (`solution`) ; les tests Node rejouent les 10 et exigent 0 échec"
+  },
+  "timeline": [
+    "2026-10-31 23:25 verrou + MISSION.json + consult Kimi (session kimi 23f72419 : marche 8→9, marge par introduction, risque de comptage)",
+    "2026-10-31 ~23:35 index.html complet + tests Node 18/18 (1re passe 17/18 : assertion de test erronée sur o:3, moteur correct)",
+    "2026-10-31 ~23:40 essai navigateur complet (voir localPlay) + 5 captures evidence/",
+    "2026-10-31 ~23:45 paquet (README/LICENSE/LOB7-GAME.json/LOB7-ATTRIBUTION.json/DELIVERY.md/cover.png 1280×720)",
+    "2026-10-31 23:47 dépôt GitHub public codex-lm/poste-pneumatique + Pages",
+    "2026-10-31 23:52 → 11-01 00:43 LOB7 : whoami OK (quotas 0/2, 0/10, 0/5) → check-local PASSED (8 entrées, 55,7 Kio) → create bd_s_c89fed22 → preuve .lob7/ownership commitée 899b274 → prepare ready (4/4 checks) → PUBLISHED",
+    "2026-11-01 ~00:50 vérification fiche + lecteur public (snapshot + sondes pixels + équivalence octet/octet du fichier publié)"
+  ],
+  "tests": "node --test 18/18 contre le VRAI index.html (VM sans DOM) : structure des 10 niveaux (bornes, chevauchements, inventaire ≥ solution, par ∈ [solution, solution+2], chaque catégorie émise a sa maison), les 10 solutions enregistrées gagnent (0 perdu/mauvaise adresse/boucle), niveau 7 par = borne inférieure Manhattan, unités moteur (I 2 orientations, L 4 rotations, X axes indépendants, S branche/droit/inverse/fusion sur 4 orientations), échecs (trou → perdue, maison mismatch → mauvaise adresse, sortie de plateau → perdue, anneau fabriqué → boucle détectée bornée), déterminisme (double simulation identique), niveaux à croisement partagé, parité i18n EN/FR/ES, page statique autonome (aucune ressource externe, aucun appel réseau). Fuzz non nécessaire : le routage est déterministe et totalement précalculé au lancement.",
+  "localPlay": "Navigateur réel (IAB, http://127.0.0.1:8747) : niveau 1 gagné par VRAI glisser-déposer de 5 tuyaux (bac → plateau, handlers PointerEvent du jeu) → ★★★ persistées ; niveau 2 échec volontaire (trou) « A capsule was lost », bouton Fix the network → réseau conservé (2 pièces), rotation au tap vérifiée puis victoire ★★★ avec la solution enregistrée ; niveau 4 (1er aiguillage, mélange cœurs/étoiles → branchement correct) gagné ★★★ ; STOP en course → retour édition réseau intact ; L10 final gagné ★★★ (12 pièces = par) ; i18n FR complet (titre « Poste pneumatique », règles, indices, boutons) + retour EN ; règles (modal) ; mobile 390×780 (plateau 370 px, bac + LANCER visibles). Captures evidence/poste-pneumatique/01-05.",
+  "browserLimits": "Panne locale du panneau IAB (déjà vue ce jour par les sessions sœurs) : seuls les pointermove sont routés, aucun clic. Parade : interactions rejouées via les propres PointerEvent handlers du jeu (même chemin de code : hit-testing, machine à glisser, inventaire) ; horloge de simulation via le chien de garde intégré au jeu + hook step(). Le vrai glisser tactile et le requestFullscreen restent à confirmer sur navigateur non restreint.",
+  "kimi": "Consult réelle (kimi -p, sortie _private/kimi-postepneumatique-consult.txt, session 23f72419) : (1) marche 8→9 trop raide → par 9 porté à 12 ; (2) marge d'une pièce aux introductions → par 4 = 8 (solution 7), par 8 = 12 (solution 11) ; (3) conseil « varier les arbitrages, pas que le comptage » → niveau 7 en pure économie (par = chemin minimal), niveaux 9-10 au par exact. Appliqué et crédité dans LOB7-ATTRIBUTION.json.",
+  "lob7": {
+    "whoami": "OK avant publication (Z Code, usr_ns4cywae, validations 0/2, imports 0/10, uploads 0/5) ; re-vérifié après (0 consommés)",
+    "checkLocal": "PASSED static-web-v1 (8 entrées, 55,7 Kio)",
+    "create": "bd_s_c89fed22-bfe0-40b4-8bd6-65bc27b5adf3 (idempotency mission-direct-2026-10-31-poste-pneumatique, contributions Cédric/Z Code/Kimi, agent-improvements false, repository-kind original/history full)",
+    "ownership": "d4a1071c… commité .lob7/ownership/bd_s_c89fed22….txt (899b274) et poussé sur main",
+    "prepare": "ready (checks malware/policy/runtime/staticAnalysis tous « passed » ; figé sur 899b274) — 1er appel sans --history-coverage refusé par la CLI (arguments requis ensemble), aucune consommation",
+    "publish": "PUBLISHED 2026-11-01 ~00:43 CET",
+    "gameId": "bg_s_d1861501-9526-404b-a1e2-e8caa0d61671",
+    "variantId": "bv_s_6ce92d69-c458-40ce-84c6-d49f80e50b42",
+    "releaseId": "br_s_22a3f04b-c7a6-4f18-b71f-365f279b1b3a",
+    "version": "1.0.0",
+    "urls": {
+      "fiche": "https://lob7.com/games/bg_s_d1861501-9526-404b-a1e2-e8caa0d61671?release=br_s_22a3f04b-c7a6-4f18-b71f-365f279b1b3a",
+      "lecteur": "https://lob7.com/player/br_s_22a3f04b-c7a6-4f18-b71f-365f279b1b3a"
+    },
+    "ficheVerifiee": "browser get OK : titre Pneumatic Post, description, genres puzzle·logic, thèmes city·logistics, auteur Z Code, crédits « Concept: Cédric Bernadac, with Claude » / « Game made by Z-Code », MIT",
+    "readerVerified": "Lecteur public ouvert : iframe chargeant le jeu complet — snapshot d'accessibilité : titre, sélecteur de langue, 10 puces de niveaux, « Level 1 · First Mail », cible 3★, indice, bac ×5 Straight, boutons LAUNCH/Clear, crédits ; rendu confirmé par sondes pixels (plateau crème + corail). Interaction profonde DANS le lecteur non rejouée : le panneau IAB ne route pas les clics vers les iframes (panne locale documentée). Preuve d'équivalence : blob publié (commit figé 899b274) == fichier local entièrement joué, octet/octet (CRLF normalisés, sha256 e9ab7ace…), et contrôle runtime LOB7 « passed » sur ce snapshot. Capture evidence/05.",
+    "quotasAfter": "validations 0/2, imports 0/10, uploads actifs 0/5 (vérifiés après publication)"
+  },
+  "limits": "Vrai tactile et plein écran non rejouables depuis le panneau bridé (couvert par pointer events unifiés + tests) ; sémantique complète de l'aiguillage (fusion depuis la branche, passage à contre-sens) choisie par Z Code et documentée dans DELIVERY.md ; équilibrage des 10 niveaux réglé à la main + revue Kimi, pas mesuré sur panel de joueurs.",
+  "outcome": "Jeu complet créé, testé (18/18 + playtest navigateur), livré sur GitHub + Pages, PUBLIÉ sur LOB7 v1.0.0 sous le compte Z Code (nouveau jeu, parcours direct conforme à la règle du 31/10), fiche et lecteur vérifiés. Aucune autre tâche planifiée ni jeu touché."
 }
