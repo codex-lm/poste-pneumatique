@@ -1,7 +1,17 @@
-# Delivery note — Pneumatic Post v1.0.0 (2026-10-31/11-01)
+# Delivery note — Pneumatic Post v1.0.0 → v1.0.1 (2026-10-31 / 11-02)
 
 Honest account of what was built, tested, and how the specification was
 interpreted. Tracking file for this mission: `MISSION.json`.
+
+## v1.0.1 (2026-11-02) — fix: endless rotation wiggle
+
+First player report (Cédric): after tapping / moving a placed tube, the piece
+kept oscillating forever. Root cause: the rotation "wiggle" animation was
+`sin(t)` with a **constant amplitude** — no decay envelope. Fix: the wiggle
+now decays linearly and comes to a full stop in 0.35 s (entry pruned after
+0.4 s). Verified in a real browser: two screenshots taken 500 ms apart ≥1.7 s
+after a rotation are byte-identical (board fully static), while the mid-wiggle
+frame differs (the effect still reads). Tests re-run: 18/18.
 
 ## Specification → implementation
 
