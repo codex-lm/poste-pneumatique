@@ -4,11 +4,16 @@
   "idempotencyKey": "mission-direct-2026-10-31-poste-pneumatique",
   "lock": "_private/lock-mission-direct-20261031-poste-pneumatique (levé à la clôture)",
   "startedAt": "2026-10-31T23:25+01:00",
-  "closedAt": "2026-11-01T00:55+01:00 (Europe/Madrid)",
-  "status": "published",
+  "closedAt": "2026-11-02 (v1.0.1 correctif)",
+  "status": "published (v1.0.1)",
   "spec": {
     "board": "6×6, entrées hors grille (ports laiton), obstacles et maisons-destinations dans la grille",
-    "pieces": ["tuyau droit (I)", "coude (L)", "croisement (X)", "aiguillage (S, filtre une catégorie vers la branche latérale)"],
+    "pieces": [
+      "tuyau droit (I)",
+      "coude (L)",
+      "croisement (X)",
+      "aiguillage (S, filtre une catégorie vers la branche latérale)"
+    ],
     "rules": [
       "Le joueur prépare le réseau puis lance la simulation",
       "Capsules espacées (vitesse constante + intervalle fixe), ne se bloquent pas entre elles",
@@ -24,7 +29,10 @@
   "artFamily": "« Ville illustrée joyeuse » (nouvelle famille, absente de la banque artDirection) : ciel papier bleu très pâle #eaf4f8, blocs crème #fdf6e9, maisons corail #ff6b5e / bleu ciel #4aa3df / jaune #ffc247, tubes de verre #bfe3f2, encre douce #2d3a43, vert lancement #3fae6a. Rotation respectée (précédentes : piscine, espace graphite, charpente, manga N&B, désert midi, nuit).",
   "game": {
     "name": "Pneumatic Post",
-    "namesLocalized": { "fr": "Poste pneumatique", "es": "Correo neumático" },
+    "namesLocalized": {
+      "fr": "Poste pneumatique",
+      "es": "Correo neumático"
+    },
     "dir": "C:/dev/zcode-games/games/poste-pneumatique/",
     "devDir": "C:/dev/zcode-games/games/poste-pneumatique-dev/ (tests Node + make_cover.py, hors dépôt)",
     "repo": "codex-lm/poste-pneumatique",
@@ -39,7 +47,18 @@
   "levels": {
     "count": 10,
     "roster": "1 Premier courrier (I) · 2 Détour du parc (coudes) · 3 Carrefour (croisement) · 4 Le tri (1er aiguillage) · 5 L'antenne (branche+coudes) · 6 Trois boîtes (2 aiguillages, 3 catégories) · 7 Boucle des champs (économie pure, par = chemin minimal 10) · 8 Heure de pointe (2 entrées + croisement + aiguillage) · 9 Le nœud (2 entrées, croisement partagé, 2 aiguillages, 4 maisons) · 10 Grand tri (final : 2 entrées, 2 aiguillages, croisement, par 12 exact)",
-    "pars": [5, 8, 9, 8, 8, 7, 10, 12, 12, 12],
+    "pars": [
+      5,
+      8,
+      9,
+      8,
+      8,
+      7,
+      10,
+      12,
+      12,
+      12
+    ],
     "starRule": "★★ réussite · ★★★ si pièces posées ≤ par (par = solution auteur ; +1 pièce de tolérance aux niveaux d'introduction 4 et 8, retour au par exact en 9-10 — revue Kimi)",
     "recordedSolutions": "chaque niveau embarque sa solution (`solution`) ; les tests Node rejouent les 10 et exigent 0 échec"
   },
@@ -76,5 +95,19 @@
     "quotasAfter": "validations 0/2, imports 0/10, uploads actifs 0/5 (vérifiés après publication)"
   },
   "limits": "Vrai tactile et plein écran non rejouables depuis le panneau bridé (couvert par pointer events unifiés + tests) ; sémantique complète de l'aiguillage (fusion depuis la branche, passage à contre-sens) choisie par Z Code et documentée dans DELIVERY.md ; équilibrage des 10 niveaux réglé à la main + revue Kimi, pas mesuré sur panel de joueurs.",
-  "outcome": "Jeu complet créé, testé (18/18 + playtest navigateur), livré sur GitHub + Pages, PUBLIÉ sur LOB7 v1.0.0 sous le compte Z Code (nouveau jeu, parcours direct conforme à la règle du 31/10), fiche et lecteur vérifiés. Aucune autre tâche planifiée ni jeu touché."
+  "outcome": "Jeu complet créé, testé (18/18 + playtest navigateur), livré sur GitHub + Pages, PUBLIÉ sur LOB7 v1.0.0 sous le compte Z Code (nouveau jeu, parcours direct conforme à la règle du 31/10), fiche et lecteur vérifiés. Aucune autre tâche planifiée ni jeu touché.",
+  "v101": {
+    "why": "Retour joueur de Cédric après partie sur la v1.0.0 : « quand on fait bouger une pièce en cliquant sur un tube déjà posé… il n'arrête pas de bouger, il ondule, comme une transition qui ne s'arrête pas ».",
+    "rootCause": "Le « wiggle » de rotation était sin(t) à amplitude CONSTANTE — aucune enveloppe d'amortissement, donc oscillation sans fin après tap/rotation.",
+    "fix": "Amortissement linéaire : wig = sin(t·26)·0,13·(1−t/0,35), entrée purgée après 0,4 s (index.html, commit 248d749).",
+    "proof": "Navigateur réel : frame à +0,12 s ≠ frame à +1,7 s (14 654 px échantillonnés diffèrent → l'effet se voit) ; frames à +1,7 s et +2,2 s IDENTIQUES octet/octet (arrêt complet). Tests 18/18 repassés. Captures fix-mid/late/later.png.",
+    "lob7": {
+      "draft": "bd_s_7f107183-5abb-4f3d-a795-82f52a7293f8",
+      "variant": "create --variant bv_s_6ce92d69 (parent exact br_s_22a3f04b conservé, même gameId, PAS de fiche dupliquée). 1er appel refusé : --agent-improvements interdit sur édition de variante (même leçon que Dockstar) — flag retiré, aucun quota consommé.",
+      "ownership": "e98e74ab… commité 9decfff et poussé",
+      "prepare": "ready (4/4 checks, figé 9decfff)",
+      "publish": "PUBLISHED 2026-11-02 — br_s_37201309-f11c-43df-b1a6-cd6b0e7ed400 v1.0.1",
+      "reader": "https://lob7.com/player/br_s_37201309-f11c-43df-b1a6-cd6b0e7ed400 — lecteur ouvert : jeu chargé (snapshot) ; blob publié == fichier local corrigé octet/octet"
+    }
+  }
 }
